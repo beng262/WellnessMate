@@ -1,6 +1,6 @@
 **WellnessMate**
 
-Welcome to WellnessMate! This is a personal, passion project, created from scratch including all the sprites and animations. You can see the protoype using my Figma link: https://www.figma.com/design/cfYIqVr6bICi37Y1FilpQa/Figma-Portfolio?node-id=0-1&t=ScNDVolUz8QFxUXT-1
+Welcome to WellnessMate! This is a personal, passion project, created from scratch including all the sprites and animations. 
 ---
 
 ## 🚀 Overview
@@ -47,6 +47,6 @@ WellnessMate is built at a slow and steady pace, focusing on:
 Thanks to the Flutter & Firebase communities for their fantastic tools and docs. Special shout-out to everyone who’s tested early builds and given feedback!
 
 ---
-
+You can see the protoype using my Figma link: https://www.figma.com/design/cfYIqVr6bICi37Y1FilpQa/Figma-Portfolio?node-id=0-1&t=ScNDVolUz8QFxUXT-1
 WellnessMate is my heart project, and I can’t wait to share it with the world on Google Play. Stay tuned!
 
