@@ -5,7 +5,8 @@ Welcome to WellnessMate! This is a personal, passion project, created from scrat
 
 ## 🚀 Overview
 WellnessMate is a gamified task management and wellness-tracking app built with **Flutter** for the frontend and **Firebase** (Auth, Firestore) on the backend. It features a virtual axolotl companion (“Axo”) that grows and changes based on your daily goal completion, making productivity fun and motivating.
-![WellnessMate copy 2 (1)](https://github.com/user-attachments/assets/924020b0-e548-4fcd-989d-4e77a89b4ed6)
+![wm](https://github.com/user-attachments/assets/dabc1b57-1349-4a4e-8053-1168f650cdf3)
+
 
 ## 🛠️ Tech Stack
 - **Flutter**: Cross-platform UI toolkit
