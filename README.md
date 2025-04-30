@@ -1,6 +1,6 @@
 **WellnessMate**
 
-Welcome to WellnessMate! This is a personal, passion project, created from scratch including all the sprites and animations. 
+Welcome to WellnessMate! This is a personal, passion project, created from scratch including all sprites and animations. 
 ---
 
 ## 🚀 Overview
