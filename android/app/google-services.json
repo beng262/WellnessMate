@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "327402994540",
+    "project_id": "wellnessmate-b4f8f",
+    "storage_bucket": "wellnessmate-b4f8f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:327402994540:android:515babeb4a9c6338ac1149",
+        "android_client_info": {
+          "package_name": "com.example.axo"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDKJbg9DhiTKtJXlFTZlBMKWsl9sn-g7Jo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:327402994540:android:38bf170fa9663483ac1149",
+        "android_client_info": {
+          "package_name": "com.newapp.wellnessmate"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDKJbg9DhiTKtJXlFTZlBMKWsl9sn-g7Jo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
