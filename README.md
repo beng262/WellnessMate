@@ -1,16 +1,52 @@
-# wellnessmate
+**WellnessMate**
 
-A new Flutter project.
+Welcome to WellnessMate! This is a personal, passion project, created from scratch including all the sprites and animations. You can see the protoype using my Figma link: https://www.figma.com/design/cfYIqVr6bICi37Y1FilpQa/Figma-Portfolio?node-id=0-1&t=ScNDVolUz8QFxUXT-1
+---
 
-## Getting Started
+## 🚀 Overview
+WellnessMate is a gamified task management and wellness-tracking app built with **Flutter** for the frontend and **Firebase** (Auth, Firestore) on the backend. It features a virtual axolotl companion (“Axo”) that grows and changes based on your daily goal completion, making productivity fun and motivating.
 
-This project is a starting point for a Flutter application.
+## 🛠️ Tech Stack
+- **Flutter**: Cross-platform UI toolkit
+- **Dart**: Programming language
+- **Firebase**: Authentication, Cloud Firestore, Realtime updates
+- **Assets & Animations**: Hand-drawn illustrations, Lottie animations, custom icons
 
-A few resources to get you started if this is your first Flutter project:
+## 🎨 Design & Artwork
+- All artwork, illustrations, and animations are fully hand-crafted by me.
+- UI layouts, icons, and color schemes designed for a calming, playful experience.
+- The Axo animations were created using Lottie and custom drawing workflows.
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+## ⚙️ Features
+- **Onboarding Wizard**: Collect user details (name, gender, birthday, pet name, pet color).
+- **Virtual Pet**: A customizable axolotl that responds to your productivity.
+- **Task Management**: Add, edit, delete, and mark tasks as completed.
+- **Gamification**: Earn visual growth and rewards for your Axo.
+- **Cloud Sync**: Tasks and progress stored in Firebase—access from any device.
+- **Settings & Themes**: Customizable color schemes and preferences.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## 📈 Development Philosophy
+WellnessMate is built at a slow and steady pace, focusing on:
+1. **Quality over speed**: Every feature is thoughtfully designed and tested.
+2. **User-centric design**: Feedback-driven improvements.
+3. **Scalability**: A modular codebase ready to grow.
+
+## 🎯 Roadmap
+- **Beta release** on Google Play Store
+- **Social sharing**: Share achievements with friends
+- **Habit analytics**: Visual graphs and reports
+- **Dark mode** and additional axolotl skins
+
+## 📦 Getting Started
+1. Clone this repo: `git clone https://github.com/username/wellnessmate.git`
+2. Install dependencies: `flutter pub get`
+3. Configure Firebase (see `firebase_options.dart`)
+4. Run: `flutter run`
+
+## 🌟 Acknowledgments
+Thanks to the Flutter & Firebase communities for their fantastic tools and docs. Special shout-out to everyone who’s tested early builds and given feedback!
+
+---
+
+WellnessMate is my heart project, and I can’t wait to share it with the world on Google Play. Stay tuned!
+
