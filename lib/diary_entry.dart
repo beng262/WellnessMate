@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart'; // for user UID
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class DiaryEntryPage extends StatefulWidget {
@@ -10,225 +10,234 @@ class DiaryEntryPage extends StatefulWidget {
 }
 
 class _DiaryEntryPageState extends State<DiaryEntryPage> {
-  final TextEditingController _diaryController = TextEditingController();
-  String? _chosenEmojiPath;
+  final TextEditingController _textController = TextEditingController();
+  String _selectedEmoji = 'images/emojis/happy.png';
+  bool _isLoading = false;
 
-  // Example placeholders (replace with actual date if you want dynamic)
-  final String _dayLabel = 'Fri 19th Sep';
-  final String _yearLabel = '2024';
-
-  final List<Map<String, dynamic>> _emojiData = [
-    {'path': 'images/loving.png', 'left': 32.0},
-    {'path': 'images/crying.png', 'left': 96.0},
-    {'path': 'images/sad.png', 'left': 160.0},
-    {'path': 'images/neutral.png', 'left': 224.0},
-    {'path': 'images/happy.png', 'left': 288.0},
+  final List<String> _emojiOptions = [
+    'images/emojis/happy.png',
+    'images/emojis/sad.png',
+    'images/emojis/neutral.png',
+    'images/emojis/crying.png',
+    'images/emojis/loving.png',
   ];
 
-  Future<void> _saveAndExit() async {
-    final text = _diaryController.text.trim();
-    final chosenEmoji = _chosenEmojiPath ?? 'images/neutral.png';
+  @override
+  void dispose() {
+    _textController.dispose();
+    super.dispose();
+  }
 
-    // Get the current user's UID
-    final uid = FirebaseAuth.instance.currentUser?.uid;
-    if (uid == null) {
-      // Handle the case where no user is logged in
+  Future<void> _saveDiaryEntry() async {
+    if (_textController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter some text for your diary entry')),
+      );
       return;
     }
 
-    // Save to Firestore subcollection for this user
-    await FirebaseFirestore.instance
-        .collection('users')
-        .doc(uid)
-        .collection('diary_entries')
-        .add({
-          'text': text.isEmpty ? "No text" : text,
-          'date': DateTime.now(), // or FieldValue.serverTimestamp()
-          'emoji': chosenEmoji,
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .collection('diary_entries')
+            .add({
+          'text': _textController.text.trim(),
+          'date': DateTime.now(),
+          'emoji': _selectedEmoji,
         });
 
-    // Go back to profile page
-    Navigator.pushNamed(context, '/profile');
+        if (mounted) {
+          Navigator.pop(context);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Diary entry saved successfully!')),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error saving diary entry: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: Stack(
-        children: [
-          // White rectangle at the top
-          Positioned(
-            left: 20,
-            top: 50,
-            width: 320,
-            height: 400,
-            child: Container(
-              decoration: BoxDecoration(
-                color: const Color(0xffffffff),
-                borderRadius: BorderRadius.circular(20),
+      backgroundColor: const Color(0xFF63B4FF),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            children: [
+              // Header
+              Row(
+                children: [
+                  GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: const Icon(
+                      Icons.arrow_back,
+                      color: Colors.white,
+                      size: 30,
+                    ),
+                  ),
+                  const SizedBox(width: 20),
+                  const Text(
+                    'New Diary Entry',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      fontFamily: 'Belanosima',
+                    ),
+                  ),
+                ],
               ),
-            ),
-          ),
-          // Date label
-          Positioned(
-            left: 40,
-            top: 70,
-            child: Text(
-              _dayLabel,
-              style: const TextStyle(
-                decoration: TextDecoration.none,
-                fontSize: 24,
-                color: Color(0xff399fff),
-                fontFamily: 'Belanosima-Regular',
+              const SizedBox(height: 30),
+
+              // Emoji Selection
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'How are you feeling?',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF63B4FF),
+                      ),
+                    ),
+                    const SizedBox(height: 15),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: _emojiOptions.map((emoji) {
+                        final isSelected = _selectedEmoji == emoji;
+                        return GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              _selectedEmoji = emoji;
+                            });
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: isSelected ? const Color(0xFFCAE1FF) : Colors.transparent,
+                              borderRadius: BorderRadius.circular(15),
+                              border: Border.all(
+                                color: isSelected ? const Color(0xFF63B4FF) : Colors.grey.shade300,
+                                width: 2,
+                              ),
+                            ),
+                            child: Image.asset(
+                              emoji,
+                              width: 40,
+                              height: 40,
+                              errorBuilder: (context, error, stackTrace) {
+                                return const Icon(Icons.emoji_emotions, size: 40);
+                              },
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ),
-          // Year label
-          Positioned(
-            left: 159,
-            top: 79,
-            child: Text(
-              _yearLabel,
-              style: const TextStyle(
-                decoration: TextDecoration.none,
-                fontSize: 20,
-                color: Color(0xff74bbff),
-                fontFamily: 'Belanosima-Regular',
-              ),
-            ),
-          ),
-          // "exit.png" in top-right
-          Positioned(
-            left: 300,
-            top: 70,
-            child: GestureDetector(
-              onTap: _saveAndExit,
-              child: Image.asset('images/exit.png', width: 24, height: 24),
-            ),
-          ),
-          // "Write about your day.." text
-          Positioned(
-            left: 10,
-            top: 122,
-            width: 248,
-            child: Text(
-              'Write about your day..',
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                decoration: TextDecoration.none,
-                fontSize: 20,
-                color: Color(0xff74bcff),
-                fontFamily: 'Belanosima-Regular',
-              ),
-            ),
-          ),
-          // TextField for diary entry
-          Positioned(
-            left: 30,
-            top: 160,
-            width: 280,
-            height: 200,
-            child: TextField(
-              controller: _diaryController,
-              maxLines: null,
-              style: const TextStyle(fontSize: 16, color: Colors.black),
-              decoration: const InputDecoration(
-                hintText: "Type here...",
-                border: OutlineInputBorder(),
-              ),
-            ),
-          ),
-          // "How was your day?" text
-          Positioned(
-            left: 29,
-            top: 467,
-            width: 311,
-            height: 34,
-            child: const Text(
-              'How was your day?',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                decoration: TextDecoration.none,
-                fontSize: 24,
-                color: Color(0xffffffff),
-                fontFamily: 'Belanosima-Regular',
-              ),
-            ),
-          ),
-          // White rectangle at the bottom for emojis
-          Positioned(
-            left: 21,
-            top: 520,
-            width: 320,
-            height: 70,
-            child: Container(
-              decoration: BoxDecoration(
-                color: const Color(0xffffffff),
-                borderRadius: BorderRadius.circular(20),
-              ),
-            ),
-          ),
-          // The 5 emoji images
-          for (final emoji in _emojiData) ...[
-            if (_chosenEmojiPath == emoji['path'])
-              Positioned(
-                left: (emoji['left'] as double) - 12,
-                top: 520,
+              const SizedBox(height: 20),
+
+              // Text Input
+              Expanded(
                 child: Container(
-                  width: 64,
-                  height: 70,
+                  padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: const Color(0x70FFF8DE),
+                    color: Colors.white,
                     borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Write about your day:',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF63B4FF),
+                        ),
+                      ),
+                      const SizedBox(height: 15),
+                      Expanded(
+                        child: TextField(
+                          controller: _textController,
+                          maxLines: null,
+                          expands: true,
+                          decoration: const InputDecoration(
+                            hintText: 'Tell me about your day...',
+                            border: InputBorder.none,
+                            hintStyle: TextStyle(
+                              color: Colors.grey,
+                              fontSize: 16,
+                            ),
+                          ),
+                          style: const TextStyle(
+                            fontSize: 16,
+                            color: Colors.black87,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
-            Positioned(
-              left: emoji['left'] as double,
-              top: 535,
-              width: 40,
-              height: 40,
-              child: GestureDetector(
-                onTap: () {
-                  setState(() {
-                    _chosenEmojiPath = emoji['path'];
-                  });
-                },
-                child: Image.asset(emoji['path'], width: 40, height: 40),
+              const SizedBox(height: 20),
+
+              // Save Button
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton(
+                  onPressed: _isLoading ? null : _saveDiaryEntry,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFCAE1FF),
+                    foregroundColor: const Color(0xFF63B4FF),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                  ),
+                  child: _isLoading
+                      ? const CircularProgressIndicator()
+                      : const Text(
+                          'Save Entry',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            fontFamily: 'Belanosima',
+                          ),
+                        ),
+                ),
               ),
-            ),
-          ],
-          // "Add" button
-          Positioned(
-            left: 140,
-            top: 658,
-            width: 80,
-            height: 40,
-            child: Container(
-              decoration: BoxDecoration(
-                color: const Color(0xffffffff),
-                borderRadius: BorderRadius.circular(20),
-              ),
-            ),
+            ],
           ),
-          Positioned(
-            left: 155,
-            top: 671,
-            width: 50,
-            height: 14,
-            child: Text(
-              'Add',
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                decoration: TextDecoration.none,
-                fontSize: 24,
-                color: Color(0xff74bcff),
-                fontFamily: 'Belanosima-Regular',
-              ),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }

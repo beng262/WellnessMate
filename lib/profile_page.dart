@@ -18,7 +18,7 @@ class DiaryEntry {
       text: data['text'] as String,
       date:
           (data['date'] as Timestamp).toDate(), // convert Timestamp to DateTime
-      emoji: data['emoji'] ?? 'images/happy.png', // default if not found
+      emoji: data['emoji'] ?? 'images/emojis/happy.png', // default if not found
     );
   }
 
@@ -70,7 +70,7 @@ class _ProfilePageState extends State<ProfilePage> {
       await collection.add({
         'text': "Today was a good day.",
         'date': now, // stored as a Timestamp in Firestore
-        'emoji': 'images/happy.png',
+        'emoji': 'images/emojis/happy.png',
       });
       // Long entry for yesterday
       await collection.add({
@@ -80,7 +80,7 @@ class _ProfilePageState extends State<ProfilePage> {
             "I hope today will be better and that I can keep pushing forward, no matter what comes my way. "
             "This long entry should trigger the scrollbar since it exceeds the threshold height.",
         'date': yesterday,
-        'emoji': 'images/sad.png',
+        'emoji': 'images/emojis/sad.png',
       });
     }
   }
@@ -151,7 +151,25 @@ class _ProfilePageState extends State<ProfilePage> {
     final now = DateTime.now();
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) {
-      return const Scaffold(body: Center(child: Text('No user logged in.')));
+      return Scaffold(
+        backgroundColor: const Color(0xFF63B4FF),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text(
+                'No user logged in.',
+                style: TextStyle(color: Colors.white, fontSize: 18),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () => Navigator.pushReplacementNamed(context, '/login'),
+                child: const Text('Go to Login'),
+              ),
+            ],
+          ),
+        ),
+      );
     }
 
     return Scaffold(
@@ -175,16 +193,76 @@ class _ProfilePageState extends State<ProfilePage> {
                     .limit(50) // limit to 50 entries for performance
                     .snapshots(),
             builder: (context, snapshot) {
-              if (!snapshot.hasData) {
-                return const CircularProgressIndicator();
+              if (snapshot.hasError) {
+                return Scaffold(
+                  backgroundColor: const Color(0xFF63B4FF),
+                  body: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(
+                          Icons.error_outline,
+                          color: Colors.white,
+                          size: 64,
+                        ),
+                        const SizedBox(height: 16),
+                        const Text(
+                          'Error loading diary entries',
+                          style: TextStyle(color: Colors.white, fontSize: 18),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Error: ${snapshot.error}',
+                          style: const TextStyle(color: Colors.white70, fontSize: 14),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 20),
+                        ElevatedButton(
+                          onPressed: () => setState(() {}),
+                          child: const Text('Retry'),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
               }
+              
+              if (!snapshot.hasData) {
+                return const Scaffold(
+                  backgroundColor: Color(0xFF63B4FF),
+                  body: Center(
+                    child: CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                  ),
+                );
+              }
+              
               // Convert snapshot docs to DiaryEntry list
               final diaryEntries =
                   snapshot.data!.docs
                       .map((doc) => DiaryEntry.fromDoc(doc))
                       .toList();
               if (diaryEntries.isEmpty) {
-                return const Text('No diary entries found.');
+                return Scaffold(
+                  backgroundColor: const Color(0xFF63B4FF),
+                  body: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text(
+                          'No diary entries found.',
+                          style: TextStyle(color: Colors.white, fontSize: 18),
+                        ),
+                        const SizedBox(height: 20),
+                        ElevatedButton(
+                          onPressed: () => Navigator.pushNamed(context, '/diary_entry'),
+                          child: const Text('Add First Entry'),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
               }
               // Ensure _currentDiaryIndex is within bounds.
               if (_currentDiaryIndex < 0 ||

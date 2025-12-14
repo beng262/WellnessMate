@@ -1,4 +1,4 @@
-name: Axo
+name: WellnessMate
 description: "A wellness tracking application with Firebase integration."
 publish_to: 'none'
 
@@ -15,6 +15,7 @@ dependencies:
   firebase_auth: ^5.5.1
   cupertino_icons: ^1.0.8
   intl: ^0.20.2
+  provider: ^6.1.2
 
 dev_dependencies:
   flutter_test:
@@ -27,6 +28,8 @@ flutter:
 
   assets:
     - images/
+    - images/Axolotls/
+    - images/emojis/
   fonts:
     - family: Belanosima
       fonts:
@@ -37,4 +40,4 @@ flutter:
 flutter_icons:
   android: true
   ios: true
-  image_path: "images/mlogo.png"
+  image_path: "images/gamelogo.png"

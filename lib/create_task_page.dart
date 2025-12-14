@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
@@ -49,8 +50,19 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
     print('==> Attempting to add task: "${goalController.text}"');
 
     try {
-      // Attempt to add the doc
-      final docRef = await _firestore.collection('tasks').add({
+      // Get current user
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        _showSnackBar('Please log in to create tasks');
+        return;
+      }
+
+      // Attempt to add the doc to user's tasks collection
+      final docRef = await _firestore
+          .collection('users')
+          .doc(user.uid)
+          .collection('tasks')
+          .add({
         'task_name': goalController.text,
         'date': FieldValue.serverTimestamp(),
         'isCompleted': false,

@@ -1,7 +1,29 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
-class SettingsPage extends StatelessWidget {
+class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
+
+  @override
+  State<SettingsPage> createState() => _SettingsPageState();
+}
+
+class _SettingsPageState extends State<SettingsPage> {
+
+  Future<void> _logout() async {
+    try {
+      await FirebaseAuth.instance.signOut();
+      if (mounted) {
+        Navigator.pushReplacementNamed(context, '/splash');
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Logout failed: $e')),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -56,7 +78,8 @@ class SettingsPage extends StatelessWidget {
                         "Profile",
                         style: TextStyle(
                           fontSize: 20,
-                          fontFamily: 'Belonasima',
+                          fontFamily: 'Belanosima',
+                          color: Colors.white,
                         ),
                       ),
 
@@ -64,10 +87,17 @@ class SettingsPage extends StatelessWidget {
                       const SizedBox(height: 20),
 
                       // Top rectangle (70px height) with blogo (48x48)
-                      _buildTopRectangle(
-                        label: "Pet & Me",
-                        logoPath: 'images/blogo.png',
-                        arrowPath: 'images/mrarrow.png',
+                      GestureDetector(
+                        onTap: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Pet & Me features coming soon!')),
+                          );
+                        },
+                        child: _buildTopRectangle(
+                          label: "Pet & Me",
+                          logoPath: 'images/blogo.png',
+                          arrowPath: 'images/sarrow.png',
+                        ),
                       ),
 
                       // 20px gap before next big text
@@ -78,7 +108,8 @@ class SettingsPage extends StatelessWidget {
                         "Preferences",
                         style: TextStyle(
                           fontSize: 20,
-                          fontFamily: 'Belonasima',
+                          fontFamily: 'Belanosima',
+                          color: Colors.white,
                         ),
                       ),
 
@@ -86,24 +117,62 @@ class SettingsPage extends StatelessWidget {
                       const SizedBox(height: 20),
 
                       // Normal rectangles (30px height)
-                      _buildNormalRectangle(
-                        label: "Notifications",
-                        arrowPath: 'images/mrarrow.png',
+                      GestureDetector(
+                        onTap: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Notifications settings coming soon!')),
+                          );
+                        },
+                        child: _buildNormalRectangle(
+                          label: "Notifications",
+                          arrowPath: 'images/sarrow.png',
+                        ),
                       ),
                       const SizedBox(height: 10), // 10px between rectangles
-                      _buildNormalRectangle(
-                        label: "Language",
-                        arrowPath: 'images/mrarrow.png',
+                      GestureDetector(
+                        onTap: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Language settings coming soon!')),
+                          );
+                        },
+                        child: _buildNormalRectangle(
+                          label: "Language",
+                          arrowPath: 'images/sarrow.png',
+                        ),
                       ),
                       const SizedBox(height: 10),
-                      _buildNormalRectangle(
-                        label: "Audio",
-                        arrowPath: 'images/mrarrow.png',
+                      GestureDetector(
+                        onTap: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Audio settings coming soon!')),
+                          );
+                        },
+                        child: _buildNormalRectangle(
+                          label: "Audio",
+                          arrowPath: 'images/sarrow.png',
+                        ),
                       ),
                       const SizedBox(height: 10),
-                      _buildNormalRectangle(
-                        label: "Theme",
-                        arrowPath: 'images/mrarrow.png',
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.pushNamed(context, '/theme_selection');
+                        },
+                        child: _buildNormalRectangle(
+                          label: "App Theme",
+                          arrowPath: 'images/sarrow.png',
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      GestureDetector(
+                        onTap: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Background customization coming soon!')),
+                          );
+                        },
+                        child: _buildNormalRectangle(
+                          label: "Background",
+                          arrowPath: 'images/sarrow.png',
+                        ),
                       ),
 
                       // 20px gap before next big text
@@ -114,26 +183,48 @@ class SettingsPage extends StatelessWidget {
                         "Account",
                         style: TextStyle(
                           fontSize: 20,
-                          fontFamily: 'Belonasima',
+                          fontFamily: 'Belanosima',
+                          color: Colors.white,
                         ),
                       ),
 
                       // 20px gap
                       const SizedBox(height: 20),
 
-                      _buildNormalRectangle(
-                        label: "Application Data",
-                        arrowPath: 'images/mrarrow.png',
+                      GestureDetector(
+                        onTap: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Application data management coming soon!')),
+                          );
+                        },
+                        child: _buildNormalRectangle(
+                          label: "Application Data",
+                          arrowPath: 'images/sarrow.png',
+                        ),
                       ),
                       const SizedBox(height: 10),
-                      _buildNormalRectangle(
-                        label: "Terms of Service",
-                        arrowPath: 'images/mrarrow.png',
+                      GestureDetector(
+                        onTap: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Terms of Service coming soon!')),
+                          );
+                        },
+                        child: _buildNormalRectangle(
+                          label: "Terms of Service",
+                          arrowPath: 'images/sarrow.png',
+                        ),
                       ),
                       const SizedBox(height: 10),
-                      _buildNormalRectangle(
-                        label: "Privacy Policy",
-                        arrowPath: 'images/mrarrow.png',
+                      GestureDetector(
+                        onTap: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Privacy Policy coming soon!')),
+                          );
+                        },
+                        child: _buildNormalRectangle(
+                          label: "Privacy Policy",
+                          arrowPath: 'images/sarrow.png',
+                        ),
                       ),
 
                       // 20px gap
@@ -144,16 +235,61 @@ class SettingsPage extends StatelessWidget {
                         "Support",
                         style: TextStyle(
                           fontSize: 20,
-                          fontFamily: 'Belonasima',
+                          fontFamily: 'Belanosima',
+                          color: Colors.white,
                         ),
                       ),
 
                       // 20px gap
                       const SizedBox(height: 20),
 
-                      _buildNormalRectangle(
-                        label: "Contact Us",
-                        arrowPath: 'images/mrarrow.png',
+                      GestureDetector(
+                        onTap: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Contact support coming soon!')),
+                          );
+                        },
+                        child: _buildNormalRectangle(
+                          label: "Contact Us",
+                          arrowPath: 'images/sarrow.png',
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.pushNamed(context, '/firebase_test');
+                        },
+                        child: _buildNormalRectangle(
+                          label: "Firebase Test",
+                          arrowPath: 'images/sarrow.png',
+                        ),
+                      ),
+                      
+                      // Add some spacing before logout
+                      const SizedBox(height: 40),
+                      
+                      // Logout button
+                      GestureDetector(
+                        onTap: _logout,
+                        child: Container(
+                          height: 50,
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            color: Colors.red.withOpacity(0.8),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: const Center(
+                            child: Text(
+                              "Logout",
+                              style: TextStyle(
+                                fontSize: 18,
+                                color: Colors.white,
+                                fontFamily: 'Belanosima',
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
                       ),
                     ],
                   ),
@@ -196,7 +332,7 @@ class SettingsPage extends StatelessWidget {
             // Push arrow to far right
             const Spacer(),
 
-            // Arrow icon (mrarrow.png)
+            // Arrow icon (sarrow.png)
             SizedBox(width: 24, height: 24, child: Image.asset(arrowPath)),
           ],
         ),

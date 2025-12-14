@@ -224,7 +224,7 @@ class _CalendarPageState extends State<CalendarPage> {
                     stream: _getDailyTasksForSelectedDate(),
                     builder: (context, snapshot) {
                       if (snapshot.hasError) {
-                        return const Center(child: Text('Error loading tasks'));
+                        return const Center(child: Text('Error loading tasks', style: TextStyle(color: Colors.white)));
                       }
                       if (snapshot.connectionState == ConnectionState.waiting) {
                         return const Center(child: CircularProgressIndicator());

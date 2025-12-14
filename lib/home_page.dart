@@ -1,6 +1,9 @@
+import 'dart:ui';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'theme_provider.dart';
 
 class WellnessMateHomePage extends StatefulWidget {
   const WellnessMateHomePage({Key? key}) : super(key: key);
@@ -9,12 +12,18 @@ class WellnessMateHomePage extends StatefulWidget {
   State<WellnessMateHomePage> createState() => _WellnessMateHomePageState();
 }
 
-class _WellnessMateHomePageState extends State<WellnessMateHomePage> {
+class _WellnessMateHomePageState extends State<WellnessMateHomePage> with TickerProviderStateMixin {
   // Global key for the settings drawer.
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   // User's chosen axo color from Firestore.
   String _axoColor = "";
+  
+  // Animation controllers
+  late AnimationController _axoAnimationController;
+  late AnimationController _turtleAnimationController;
+  late Animation<double> _axoJumpAnimation;
+  late Animation<double> _turtleJumpAnimation;
 
   // This function initializes default task suggestions if the user's tasks subcollection is empty.
   Future<void> _initializeTasks() async {
@@ -60,10 +69,33 @@ class _WellnessMateHomePageState extends State<WellnessMateHomePage> {
   @override
   void initState() {
     super.initState();
+    // Initialize animation controllers
+    _axoAnimationController = AnimationController(
+      duration: const Duration(milliseconds: 1000), // Slower animation
+      vsync: this,
+    );
+    _turtleAnimationController = AnimationController(
+      duration: const Duration(milliseconds: 1000), // Slower animation
+      vsync: this,
+    );
+    _axoJumpAnimation = Tween<double>(begin: 0.0, end: -20.0).animate(
+      CurvedAnimation(parent: _axoAnimationController, curve: Curves.elasticOut),
+    );
+    _turtleJumpAnimation = Tween<double>(begin: 0.0, end: -20.0).animate(
+      CurvedAnimation(parent: _turtleAnimationController, curve: Curves.elasticOut),
+    );
+    
     // First, initialize default tasks if needed.
     _initializeTasks();
     // Load the user's data (including the axo color).
     _loadUserData();
+  }
+
+  @override
+  void dispose() {
+    _axoAnimationController.dispose();
+    _turtleAnimationController.dispose();
+    super.dispose();
   }
 
   // Helper: Determines the axo image path based on the stored axoColor.
@@ -73,6 +105,22 @@ class _WellnessMateHomePageState extends State<WellnessMateHomePage> {
     } else {
       // Default axo image if none is set.
       return 'images/axolotl.png';
+    }
+  }
+
+  // Logout function
+  Future<void> _logout() async {
+    try {
+      await FirebaseAuth.instance.signOut();
+      if (mounted) {
+        Navigator.pushReplacementNamed(context, '/splash');
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Logout failed: $e')),
+        );
+      }
     }
   }
 
@@ -111,10 +159,17 @@ class _WellnessMateHomePageState extends State<WellnessMateHomePage> {
                 ),
               ),
               const SizedBox(height: 20),
-              _buildTopRectangle(
-                label: "Pet & Me",
-                logoPath: 'images/blogo.png',
-                arrowPath: 'images/sarrow.png',
+              GestureDetector(
+                onTap: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Pet & Me features coming soon!')),
+                  );
+                },
+                child: _buildTopRectangle(
+                  label: "Pet & Me",
+                  logoPath: 'images/blogo.png',
+                  arrowPath: 'images/sarrow.png',
+                ),
               ),
               const SizedBox(height: 20),
               const Text(
@@ -127,24 +182,50 @@ class _WellnessMateHomePageState extends State<WellnessMateHomePage> {
                 ),
               ),
               const SizedBox(height: 20),
-              _buildNormalRectangle(
-                label: "Notifications",
-                arrowPath: 'images/sarrow.png',
+              GestureDetector(
+                onTap: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Notifications settings coming soon!')),
+                  );
+                },
+                child: _buildNormalRectangle(
+                  label: "Notifications",
+                  arrowPath: 'images/sarrow.png',
+                ),
               ),
               const SizedBox(height: 10),
-              _buildNormalRectangle(
-                label: "Language",
-                arrowPath: 'images/sarrow.png',
+              GestureDetector(
+                onTap: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Language settings coming soon!')),
+                  );
+                },
+                child: _buildNormalRectangle(
+                  label: "Language",
+                  arrowPath: 'images/sarrow.png',
+                ),
               ),
               const SizedBox(height: 10),
-              _buildNormalRectangle(
-                label: "Audio",
-                arrowPath: 'images/sarrow.png',
+              GestureDetector(
+                onTap: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Audio settings coming soon!')),
+                  );
+                },
+                child: _buildNormalRectangle(
+                  label: "Audio",
+                  arrowPath: 'images/sarrow.png',
+                ),
               ),
               const SizedBox(height: 10),
-              _buildNormalRectangle(
-                label: "Theme",
-                arrowPath: 'images/sarrow.png',
+              GestureDetector(
+                onTap: () {
+                  Navigator.pushNamed(context, '/theme_selection');
+                },
+                child: _buildNormalRectangle(
+                  label: "Theme",
+                  arrowPath: 'images/sarrow.png',
+                ),
               ),
               const SizedBox(height: 20),
               const Text(
@@ -157,19 +238,40 @@ class _WellnessMateHomePageState extends State<WellnessMateHomePage> {
                 ),
               ),
               const SizedBox(height: 20),
-              _buildNormalRectangle(
-                label: "Application Data",
-                arrowPath: 'images/sarrow.png',
+              GestureDetector(
+                onTap: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Application data management coming soon!')),
+                  );
+                },
+                child: _buildNormalRectangle(
+                  label: "Application Data",
+                  arrowPath: 'images/sarrow.png',
+                ),
               ),
               const SizedBox(height: 10),
-              _buildNormalRectangle(
-                label: "Terms of Service",
-                arrowPath: 'images/sarrow.png',
+              GestureDetector(
+                onTap: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Terms of Service coming soon!')),
+                  );
+                },
+                child: _buildNormalRectangle(
+                  label: "Terms of Service",
+                  arrowPath: 'images/sarrow.png',
+                ),
               ),
               const SizedBox(height: 8),
-              _buildNormalRectangle(
-                label: "Privacy Policy",
-                arrowPath: 'images/sarrow.png',
+              GestureDetector(
+                onTap: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Privacy Policy coming soon!')),
+                  );
+                },
+                child: _buildNormalRectangle(
+                  label: "Privacy Policy",
+                  arrowPath: 'images/sarrow.png',
+                ),
               ),
               const SizedBox(height: 20),
               const Text(
@@ -182,10 +284,29 @@ class _WellnessMateHomePageState extends State<WellnessMateHomePage> {
                 ),
               ),
               const SizedBox(height: 20),
-              _buildNormalRectangle(
-                label: "Contact Us",
-                arrowPath: 'images/sarrow.png',
+              GestureDetector(
+                onTap: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Contact support coming soon!')),
+                  );
+                },
+                child: _buildNormalRectangle(
+                  label: "Contact Us",
+                  arrowPath: 'images/sarrow.png',
+                ),
               ),
+              
+              // Add some spacing before logout
+              const SizedBox(height: 40),
+              
+                              // Logout button
+                GestureDetector(
+                  onTap: _logout,
+                  child: _buildNormalRectangle(
+                    label: "Logout",
+                    arrowPath: 'images/sarrow.png',
+                  ),
+                ),
             ],
           ),
         ),
@@ -270,9 +391,27 @@ class _WellnessMateHomePageState extends State<WellnessMateHomePage> {
       drawer: _buildSettingsDrawer(context),
       body: Stack(
         children: [
-          // Background image.
+          // Background image with customization.
           Positioned.fill(
-            child: Image.asset('images/background.png', fit: BoxFit.cover),
+            child: Consumer<ThemeProvider>(
+              builder: (context, themeProvider, child) {
+                return ColorFiltered(
+                  colorFilter: ColorFilter.matrix([
+                    themeProvider.brightness, 0, 0, 0, 0,
+                    0, themeProvider.brightness, 0, 0, 0,
+                    0, 0, themeProvider.brightness, 0, 0,
+                    0, 0, 0, 1, 0,
+                  ]),
+                  child: ImageFiltered(
+                    imageFilter: ImageFilter.blur(
+                      sigmaX: themeProvider.blur,
+                      sigmaY: themeProvider.blur,
+                    ),
+                    child: Image.asset('images/background.png', fit: BoxFit.cover),
+                  ),
+                );
+              },
+            ),
           ),
           SafeArea(
             child: Column(
@@ -290,10 +429,18 @@ class _WellnessMateHomePageState extends State<WellnessMateHomePage> {
                           height: 130,
                           child: GestureDetector(
                             onTap: () {
-                              // TODO: Insert Lottie animation for axo when clicked/petted.
-                              // e.g., Lottie.asset('assets/animations/axo_animation.json');
+                              _axoAnimationController.reset();
+                              _axoAnimationController.forward();
                             },
-                            child: Image.asset(getAxoImagePath()),
+                            child: AnimatedBuilder(
+                              animation: _axoAnimationController,
+                              builder: (context, child) {
+                                return Transform.translate(
+                                  offset: Offset(0, _axoJumpAnimation.value),
+                                  child: Image.asset(getAxoImagePath()),
+                                );
+                              },
+                            ),
                           ),
                         ),
                       ),
@@ -304,13 +451,21 @@ class _WellnessMateHomePageState extends State<WellnessMateHomePage> {
                       left: (screenWidth / 2) + 56,
                       child: GestureDetector(
                         onTap: () {
-                          // TODO: Insert Lottie animation for turtle when clicked/petted.
-                          // e.g., Lottie.asset('assets/animations/turtle_animation.json');
+                          _turtleAnimationController.reset();
+                          _turtleAnimationController.forward();
                         },
-                        child: SizedBox(
-                          width: 50,
-                          height: 50,
-                          child: Image.asset('images/turtle.png'),
+                        child: AnimatedBuilder(
+                          animation: _turtleAnimationController,
+                          builder: (context, child) {
+                            return Transform.translate(
+                              offset: Offset(0, _turtleJumpAnimation.value),
+                              child: SizedBox(
+                                width: 50,
+                                height: 50,
+                                child: Image.asset('images/turtle.png'),
+                              ),
+                            );
+                          },
                         ),
                       ),
                     ),
@@ -321,12 +476,14 @@ class _WellnessMateHomePageState extends State<WellnessMateHomePage> {
                 Expanded(
                   child: StreamBuilder<QuerySnapshot>(
                     // Query tasks from the user's tasks subcollection.
-                    stream: FirebaseFirestore.instance
-                        .collection('users')
-                        .doc(FirebaseAuth.instance.currentUser?.uid)
-                        .collection('tasks')
-                        .orderBy('date', descending: false)
-                        .snapshots(),
+                    stream: FirebaseAuth.instance.currentUser != null
+                        ? FirebaseFirestore.instance
+                            .collection('users')
+                            .doc(FirebaseAuth.instance.currentUser!.uid)
+                            .collection('tasks')
+                            .orderBy('date', descending: false)
+                            .snapshots()
+                        : Stream<QuerySnapshot>.empty(),
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
                         return const Center(child: CircularProgressIndicator());
@@ -412,7 +569,7 @@ class _WellnessMateHomePageState extends State<WellnessMateHomePage> {
                                       borderRadius: BorderRadius.circular(20),
                                       boxShadow: [
                                         BoxShadow(
-                                          color: Colors.black.withOpacity(0.1),
+                                          color: Colors.black.withValues(alpha: 0.1),
                                           blurRadius: 5,
                                           offset: const Offset(0, 2),
                                         ),

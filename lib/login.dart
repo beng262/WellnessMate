@@ -3,13 +3,13 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class LoginPage extends StatefulWidget {
-  const LoginPage({Key? key}) : super(key: key);
+  const LoginPage({super.key});
 
   @override
   State<LoginPage> createState() => _LoginPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
   // We have 6 steps:
   // 0: Name, 1: Gender, 2: Birthday, 3: Email, 4: Password, 5: Axo Color.
   int _currentStep = 0;
@@ -43,6 +43,65 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
+
+  // Animation controllers for axolotl and turtle
+  late AnimationController _axoAnimationController;
+  late AnimationController _turtleAnimationController;
+  late Animation<double> _axoJumpAnimation;
+  late Animation<double> _axoRotationAnimation;
+  late Animation<double> _turtleJumpAnimation;
+  late Animation<double> _turtleRotationAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    
+    // Initialize animation controllers
+    _axoAnimationController = AnimationController(
+      duration: const Duration(milliseconds: 600),
+      vsync: this,
+    );
+    
+    _turtleAnimationController = AnimationController(
+      duration: const Duration(milliseconds: 600),
+      vsync: this,
+    );
+    
+    // Jump animation (bounce up and down)
+    _axoJumpAnimation = Tween<double>(
+      begin: 0.0,
+      end: -20.0,
+    ).animate(CurvedAnimation(
+      parent: _axoAnimationController,
+      curve: Curves.elasticOut,
+    ));
+    
+    // Rotation animation (8 degrees left, then 8 degrees right, then center)
+    _axoRotationAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _axoAnimationController,
+      curve: Curves.easeInOut,
+    ));
+    
+    // Turtle animations
+    _turtleJumpAnimation = Tween<double>(
+      begin: 0.0,
+      end: -20.0,
+    ).animate(CurvedAnimation(
+      parent: _turtleAnimationController,
+      curve: Curves.elasticOut,
+    ));
+    
+    _turtleRotationAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _turtleAnimationController,
+      curve: Curves.easeInOut,
+    ));
+  }
 
   // ------------------ Styles & Gradients ------------------
 
@@ -83,9 +142,9 @@ class _LoginPageState extends State<LoginPage> {
   // Vertical gradient for button text.
   Shader get verticalGradient => const LinearGradient(
     colors: [
-      Color(0xFFB4A8FA),
       Color(0xFF69B7FF),
       Color(0xFFFF9AF5),
+      Color(0xFFB4A8FA),
     ],
     begin: Alignment.centerLeft,
     end: Alignment.centerRight,
@@ -118,6 +177,36 @@ class _LoginPageState extends State<LoginPage> {
   // Simple email validation.
   bool _validateEmail(String email) {
     return email.contains("@") && email.contains(".");
+  }
+
+  // Password validation with detailed feedback.
+  void _validatePassword() {
+    if (_userPassword.isEmpty && _confirmPassword.isEmpty) {
+      _passwordError = "";
+      return;
+    }
+    
+    if (_userPassword.isEmpty) {
+      _passwordError = "Please enter your password.";
+      return;
+    }
+    
+    if (_userPassword.length < 6) {
+      _passwordError = "Password must be at least 6 characters long.";
+      return;
+    }
+    
+    if (_confirmPassword.isEmpty) {
+      _passwordError = "Please confirm your password.";
+      return;
+    }
+    
+    if (_userPassword != _confirmPassword) {
+      _passwordError = "Passwords do not match.";
+      return;
+    }
+    
+    _passwordError = "";
   }
 
   // ------------------ Navigation Handlers ------------------
@@ -184,6 +273,10 @@ class _LoginPageState extends State<LoginPage> {
   // ------------------ Firebase User Creation ------------------
 
   Future<void> _createFirebaseUser() async {
+    setState(() {
+      _firebaseError = "Creating your account...";
+    });
+    
     try {
       // Create user with email and password.
       UserCredential cred = await FirebaseAuth.instance.createUserWithEmailAndPassword(
@@ -201,10 +294,21 @@ class _LoginPageState extends State<LoginPage> {
           'createdAt': FieldValue.serverTimestamp(),
         });
       }
-      Navigator.pushReplacementNamed(context, '/');
+              Navigator.pushReplacementNamed(context, '/home');
     } catch (e) {
+      String errorMessage = "Error creating account: ";
+      if (e.toString().contains("network") || e.toString().contains("EAI_NODATA")) {
+        errorMessage += "Network error. Please check your internet connection.";
+      } else if (e.toString().contains("email")) {
+        errorMessage += "Email already in use. Please try a different email.";
+      } else if (e.toString().contains("password")) {
+        errorMessage += "Password is too weak. Please try a stronger password.";
+      } else {
+        errorMessage += e.toString();
+      }
+      
       setState(() {
-        _firebaseError = e.toString();
+        _firebaseError = errorMessage;
       });
       print("Error creating user: $e");
     }
@@ -223,8 +327,9 @@ class _LoginPageState extends State<LoginPage> {
         }
         return true;
       },
-      child: Scaffold(
-        body: Container(
+              child: Scaffold(
+          resizeToAvoidBottomInset: false,
+          body: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
               colors: [
@@ -435,7 +540,6 @@ class _LoginPageState extends State<LoginPage> {
           child: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              border: Border.all(color: Colors.white),
               borderRadius: BorderRadius.circular(10),
               color: _selectedGender == "prefer not to say" ? Colors.white24 : Colors.transparent,
             ),
@@ -512,13 +616,13 @@ class _LoginPageState extends State<LoginPage> {
               });
             }),
             const SizedBox(width: 15),
-            // Increase year box width by 10 pixels.
+            // Increase year box width by 20 pixels.
             _buildEditableBirthdayBox("YYYY", _selectedYear, 1900, 2025, (val) {
               setState(() {
                 _selectedYear = val;
                 _updateBirthday();
               });
-            }, extraWidth: 10),
+            }, extraWidth: 20),
           ],
         ),
       ],
@@ -529,6 +633,15 @@ class _LoginPageState extends State<LoginPage> {
   Widget _buildEditableBirthdayBox(String label, int currentValue, int min, int max, Function(int) onChanged, {double extraWidth = 0}) {
     final double boxWidth = 90 + extraWidth;
     final TextEditingController _boxController = TextEditingController(text: currentValue.toString());
+    
+    // Determine arrow position based on label
+    double arrowRight;
+    if (label == "DD" || label == "MM") {
+      arrowRight = 11; // 5 pixels more left (6 + 5 = 11)
+    } else {
+      arrowRight = 3; // 3 pixels to the right (6 - 3 = 3)
+    }
+    
     return Container(
       width: boxWidth,
       height: 60,
@@ -545,12 +658,11 @@ class _LoginPageState extends State<LoginPage> {
           onChanged(newValue);
           _boxController.text = newValue.toString();
         },
-        child: Center(
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // Editable text.
-              SizedBox(
+        child: Stack(
+          children: [
+            // Editable text.
+            Center(
+              child: SizedBox(
                 width: boxWidth - 30,
                 child: TextField(
                   controller: _boxController,
@@ -560,7 +672,15 @@ class _LoginPageState extends State<LoginPage> {
                   decoration: const InputDecoration(
                     border: InputBorder.none,
                     isDense: true,
+                    contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 15),
                   ),
+                  onChanged: (val) {
+                    // Allow real-time updates as user types
+                    int? newVal = int.tryParse(val);
+                    if (newVal != null && newVal >= min && newVal <= max) {
+                      onChanged(newVal);
+                    }
+                  },
                   onSubmitted: (val) {
                     int? newVal = int.tryParse(val);
                     if (newVal != null && newVal >= min && newVal <= max) {
@@ -571,11 +691,17 @@ class _LoginPageState extends State<LoginPage> {
                   },
                 ),
               ),
-              // Arrow indicator.
-              const SizedBox(width: 4),
-              Image.asset('images/arrow3.png', width: 20, height: 20),
-            ],
-          ),
+            ),
+            // Arrow indicator with dynamic positioning
+            Positioned(
+              right: arrowRight,
+              top: 0,
+              bottom: 0,
+              child: Center(
+                child: Image.asset('images/arrow3.png', width: 20, height: 20),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -645,7 +771,7 @@ class _LoginPageState extends State<LoginPage> {
             onChanged: (val) {
               setState(() {
                 _userPassword = val;
-                _passwordError = "";
+                _validatePassword();
               });
             },
             textAlign: TextAlign.center,
@@ -684,7 +810,7 @@ class _LoginPageState extends State<LoginPage> {
             onChanged: (val) {
               setState(() {
                 _confirmPassword = val;
-                _passwordError = "";
+                _validatePassword();
               });
             },
             textAlign: TextAlign.center,
@@ -717,13 +843,13 @@ class _LoginPageState extends State<LoginPage> {
       children: [
         Text("What color would be best for your axo?", style: questionTextStyle, textAlign: TextAlign.center),
         const SizedBox(height: 20),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+        Wrap(
+          alignment: WrapAlignment.center,
+          spacing: 15,
+          runSpacing: 15,
           children: [
             _buildAxoOption("blueaxo.png", "blue"),
-            const SizedBox(width: 10),
             _buildAxoOption("pinkaxo.png", "pink"),
-            const SizedBox(width: 10),
             _buildAxoOption("purpleaxo.png", "purple"),
           ],
         ),
@@ -733,25 +859,128 @@ class _LoginPageState extends State<LoginPage> {
 
   Widget _buildAxoOption(String asset, String colorValue) {
     final bool isSelected = (_selectedAxoColor == colorValue);
-    // Base size 120; if selected, grow 125%.
+    // Base size 120px; if selected, grow 125%
     final double baseSize = 120;
     final double size = isSelected ? baseSize * 1.25 : baseSize;
+    
+    // Try different asset paths
+    final List<String> assetPaths = [
+      'images/Axolotls/$asset',
+      'images/$asset',
+    ];
+    
     return GestureDetector(
-      onTap: () => setState(() => _selectedAxoColor = colorValue),
-      child: Image.asset(
-        'images/$asset',
-        width: size,
-        height: size,
+      onTap: () {
+        setState(() => _selectedAxoColor = colorValue);
+        // Trigger animation
+        _axoAnimationController.reset();
+        _axoAnimationController.forward();
+      },
+      child: AnimatedBuilder(
+        animation: _axoAnimationController,
+        builder: (context, child) {
+          // Calculate rotation based on animation progress
+          double rotation = 0.0;
+          if (_axoAnimationController.value < 0.33) {
+            // First third: rotate 8 degrees left
+            rotation = -8.0 * (_axoAnimationController.value / 0.33);
+          } else if (_axoAnimationController.value < 0.66) {
+            // Second third: rotate 8 degrees right
+            rotation = -8.0 + 16.0 * ((_axoAnimationController.value - 0.33) / 0.33);
+          } else {
+            // Last third: return to center
+            rotation = 8.0 - 8.0 * ((_axoAnimationController.value - 0.66) / 0.34);
+          }
+          
+          return Transform.translate(
+            offset: Offset(0, _axoJumpAnimation.value),
+            child: Transform.rotate(
+              angle: rotation * 3.14159 / 180, // Convert degrees to radians
+              child: _buildImageWithFallback(assetPaths, size),
+            ),
+          );
+        },
       ),
     );
   }
-
-  @override
-  void dispose() {
-    _nameController.dispose();
-    _emailController.dispose();
-    _passwordController.dispose();
-    _confirmPasswordController.dispose();
-    super.dispose();
+  
+  Widget _buildImageWithFallback(List<String> assetPaths, double size) {
+    return Image.asset(
+      assetPaths[0],
+      width: size,
+      height: size,
+      errorBuilder: (context, error, stackTrace) {
+        print('Error loading image: ${assetPaths[0]} - $error');
+        // Try alternative paths
+        if (assetPaths.length > 1) {
+          return Image.asset(
+            assetPaths[1],
+            width: size,
+            height: size,
+            errorBuilder: (context, error2, stackTrace2) {
+              print('Error loading image: ${assetPaths[1]} - $error2');
+              return Container(
+                width: size,
+                height: size,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      Icons.image_not_supported,
+                      size: 40,
+                      color: Colors.grey,
+                    ),
+                    const SizedBox(height: 5),
+                    Text(
+                      assetPaths[0].split('/').last,
+                      style: const TextStyle(fontSize: 10, color: Colors.grey),
+                    ),
+                    const SizedBox(height: 5),
+                    Text(
+                      'Error: $error',
+                      style: const TextStyle(fontSize: 8, color: Colors.red),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              );
+            },
+          );
+        }
+        return Container(
+          width: size,
+          height: size,
+          decoration: BoxDecoration(
+            color: Colors.grey[300],
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(
+                Icons.image_not_supported,
+                size: 40,
+                color: Colors.grey,
+              ),
+              const SizedBox(height: 5),
+              Text(
+                assetPaths[0].split('/').last,
+                style: const TextStyle(fontSize: 10, color: Colors.grey),
+              ),
+              const SizedBox(height: 5),
+              Text(
+                'Error: $error',
+                style: const TextStyle(fontSize: 8, color: Colors.red),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 }
